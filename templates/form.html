@@ -1,18 +1,296 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>SmartCareerAI</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <meta charset="UTF-8" />
+  <title>AI Resume Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 20px auto;
+      padding: 10px;
+    }
+    h1, h3 {
+      color: #333;
+    }
+    .block {
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      position: relative;
+      background: #f9f9f9;
+      border-radius: 5px;
+    }
+    .remove-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: #f44336;
+      color: white;
+      border: none;
+      padding: 3px 7px;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 3px;
+    }
+    label {
+      display: block;
+      margin: 6px 0 4px 0;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="url"] {
+      width: 95%;
+      padding: 6px;
+      box-sizing: border-box;
+      border: 1px solid #aaa;
+      border-radius: 3px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 7px 15px;
+      cursor: pointer;
+      border-radius: 5px;
+      border: none;
+      background-color: #1976d2;
+      color: white;
+      font-size: 14px;
+    }
+    button:hover {
+      background-color: #1565c0;
+    }
+    #advanced-form-container > button {
+      background-color: #4caf50;
+    }
+    #advanced-form-container > button:hover {
+      background-color: #388e3c;
+    }
+    select {
+      padding: 6px;
+      border-radius: 3px;
+      border: 1px solid #aaa;
+      width: 100%;
+      max-width: 300px;
+      margin-top: 5px;
+    }
+    .section-inline {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .section-inline label {
+      flex: 1 1 45%;
+    }
+  </style>
 </head>
-<body class="container mt-5">
-    <h2>SmartCareerAI – Resume & Career Builder</h2>
-    <form method="POST" action="/generate">
-        <input class="form-control mt-3" name="name" placeholder="Your Name" required>
-        <input class="form-control mt-3" name="education" placeholder="Education Details" required>
-        <input class="form-control mt-3" name="skills" placeholder="Skills (comma separated)" required>
-        <input class="form-control mt-3" name="experience" placeholder="Experience (if any)" required>
-        <input class="form-control mt-3" name="goal" placeholder="Career Goal (e.g. Data Scientist)" required>
-        <button class="btn btn-primary mt-3">Generate Resume</button>
-    </form>
+<body>
+  <h1>AI Resume Generator Form</h1>
+  <form action="/generate" method="POST" id="resume-form">
+    <label>Full Name:
+        <input type="text" name="name" required placeholder="Your full name" />
+    </label>
+
+    <!-- Basic Info -->
+    <label>Email ID:
+      <input type="email" name="email" required placeholder="you@example.com" />
+    </label>
+    <label>LinkedIn:
+      <input type="url" name="linkedin" required placeholder="https://linkedin.com/in/yourprofile" />
+    </label>
+    <label>GitHub:
+      <input type="url" name="github" required placeholder="https://github.com/yourusername" />
+    </label>
+    <label>LeetCode (optional):
+      <input type="url" name="leetcode" placeholder="https://leetcode.com/yourusername" />
+    </label>
+    <label>Portfolio (optional):
+      <input type="url" name="portfolio" placeholder="https://yourportfolio.com" />
+    </label>
+
+    <!-- Education Section -->
+    <h3>Education (max 5)</h3>
+    <div id="education-list">
+      <div class="block education-block">
+        <label>Degree:
+          <input type="text" name="education_degree[]" required placeholder="B.Tech Computer Science" />
+        </label>
+        <label>College:
+          <input type="text" name="education_college[]" required placeholder="Your College Name" />
+        </label>
+        <label>Batch:
+          <input type="text" name="education_batch[]" required placeholder="2018-2022" />
+        </label>
+        <label>CGPA:
+          <input type="text" name="education_cgpa[]" required placeholder="8.5" />
+        </label>
+      </div>
+    </div>
+    <button type="button" onclick="addEducation()">Add Education</button><br />
+
+    <!-- Work Experience Section -->
+    <h3>Work Experience (max 3)</h3>
+    <div id="work-list">
+      <div class="block work-block">
+        <label>Work Title:
+          <input type="text" name="work_title[]" required placeholder="Software Engineer" />
+        </label>
+        <button type="button" class="remove-btn" onclick="removeBlock(this)">X</button>
+      </div>
+    </div>
+    <button type="button" onclick="addWork()">Add Work Experience</button><br />
+
+    <!-- Projects Section -->
+    <h3>Projects (max 3)</h3>
+    <div id="project-list">
+      <div class="block project-block">
+        <label>Project Title:
+          <input type="text" name="project_title[]" required placeholder="AI Chatbot" />
+        </label>
+        <button type="button" class="remove-btn" onclick="removeBlock(this)">X</button>
+      </div>
+    </div>
+    <button type="button" onclick="addProject()">Add Project</button><br />
+
+    <!-- Skills -->
+    <h3>Skills (comma separated)</h3>
+    <input type="text" name="skills" required placeholder="Python, JavaScript, SQL, Machine Learning" /><br />
+
+    <!-- Advanced Options Dropdown -->
+    <h3>Advanced Options</h3>
+    <select id="advanced-select" onchange="showAdvancedForm()">
+      <option value="">--Select--</option>
+      <option value="certification">Certification</option>
+      <option value="achievement">Achievement</option>
+      <option value="roles">Roles & Activities</option>
+    </select>
+
+    <label for="goal">Career Goal</label>
+        <textarea name="goal" id="goal" rows="4" placeholder="Your career objective..."></textarea>
+
+
+    <div id="advanced-form-container"></div>
+
+    <br />
+    <button type="submit">Generate Resume</button>
+    <button type="reset" style="background-color: #e53935; margin-left: 10px;">Reset Form</button>
+  </form>
+
+<script>
+  // Remove a block when X clicked
+  function removeBlock(btn) {
+    btn.parentElement.remove();
+  }
+
+  // Education add (limit 5)
+  function addEducation() {
+    const container = document.getElementById('education-list');
+    if (container.children.length >= 5) {
+      alert('Max 5 education entries allowed.');
+      return;
+    }
+    const block = document.createElement('div');
+    block.className = 'block education-block';
+    block.innerHTML = `
+      <label>Degree:
+        <input type="text" name="education_degree[]" required placeholder="B.Tech Computer Science" />
+      </label>
+      <label>College:
+        <input type="text" name="education_college[]" required placeholder="Your College Name" />
+      </label>
+      <label>Batch:
+        <input type="text" name="education_batch[]" required placeholder="2018-2022" />
+      </label>
+      <label>CGPA:
+        <input type="text" name="education_cgpa[]" required placeholder="8.5" />
+      </label>
+      <button type="button" class="remove-btn" onclick="removeBlock(this)">X</button>
+    `;
+    container.appendChild(block);
+  }
+
+  // Work Experience add (limit 3)
+  function addWork() {
+    const container = document.getElementById('work-list');
+    if (container.children.length >= 3) {
+      alert('Max 3 work experience allowed.');
+      return;
+    }
+    const block = document.createElement('div');
+    block.className = 'block work-block';
+    block.innerHTML = `
+      <label>Work Title:
+        <input type="text" name="work_title[]" required placeholder="Software Engineer" />
+      </label>
+      <button type="button" class="remove-btn" onclick="removeBlock(this)">X</button>
+    `;
+    container.appendChild(block);
+  }
+
+  // Projects add (limit 3)
+  function addProject() {
+    const container = document.getElementById('project-list');
+    if (container.children.length >= 3) {
+      alert('Max 3 projects allowed.');
+      return;
+    }
+    const block = document.createElement('div');
+    block.className = 'block project-block';
+    block.innerHTML = `
+      <label>Project Title:
+        <input type="text" name="project_title[]" required placeholder="AI Chatbot" />
+      </label>
+      <button type="button" class="remove-btn" onclick="removeBlock(this)">X</button>
+    `;
+    container.appendChild(block);
+  }
+
+  // Advanced options dynamic form
+  function showAdvancedForm() {
+    const container = document.getElementById('advanced-form-container');
+    const val = document.getElementById('advanced-select').value;
+    container.innerHTML = '';
+
+    if (!val) return;
+
+    // Create container for advanced entries and add button
+    container.innerHTML = `
+      <div id="adv-list"></div>
+      <button type="button" onclick="addAdvancedEntry()">Add ${val.charAt(0).toUpperCase() + val.slice(1)}</button>
+    `;
+
+    window.advancedType = val; // store type globally for adding entries
+
+    // Add one initial block on dropdown selection
+    addAdvancedEntry();
+  }
+
+  // Add advanced option entry (certification, achievement, roles)
+  function addAdvancedEntry() {
+    const container = document.getElementById('adv-list');
+    const type = window.advancedType || '';
+    if (!type) return;
+
+    const block = document.createElement('div');
+    block.className = 'block adv-block';
+    block.innerHTML = `
+      <label>Title:
+        <input type="text" name="${type}_title[]" required placeholder="Title here" />
+      </label>
+      <label>Year:
+        <input type="text" name="${type}_year[]" required placeholder="e.g. 2024" />
+      </label>
+      <button type="button" class="remove-btn" onclick="removeBlock(this)">X</button>
+    `;
+    container.appendChild(block);
+  }
+
+  // Add one initial block for advanced if dropdown is already selected on page load
+  document.addEventListener("DOMContentLoaded", () => {
+    if(document.getElementById('advanced-select').value) {
+      showAdvancedForm();
+    }
+  });
+</script>
+
 </body>
 </html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Resume Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .section { margin-bottom: 20px; }
+        label { display: block; margin-top: 10px; }
+        input, select, textarea { width: 100%; padding: 8px; margin-top: 5px; }
+        .multi-block { margin-bottom: 10px; border: 1px solid #ccc; padding: 10px; }
+        button { padding: 8px 15px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Resume Generator</h1>
+    <form action="/generate" method="POST">
+        <div class="section">
+            <h3>Personal Info</h3>
+            <label>Email ID</label>
+            <input type="email" name="email" required>
+            <label>LinkedIn</label>
+            <input type="url" name="linkedin" required>
+            <label>GitHub</label>
+            <input type="url" name="github" required>
+            <label>LeetCode (Optional)</label>
+            <input type="url" name="leetcode">
+            <label>Portfolio (Optional)</label>
+            <input type="url" name="portfolio">
+        </div>
+
+        <div class="section" id="education-section">
+            <h3>Education</h3>
+            <div class="multi-block">
+                <label>Degree</label>
+                <input type="text" name="edu_degree[]">
+                <label>College/School</label>
+                <input type="text" name="edu_college[]">
+                <label>Batch</label>
+                <input type="text" name="edu_batch[]">
+                <label>CGPA</label>
+                <input type="text" name="edu_cgpa[]">
+            </div>
+            <button type="button" onclick="addBlock('education-section')">+ Add More Education</button>
+        </div>
+
+        <div class="section" id="experience-section">
+            <h3>Work Experience</h3>
+            <div class="multi-block">
+                <label>Experience Title</label>
+                <input type="text" name="experience_title[]">
+            </div>
+            <button type="button" onclick="addBlock('experience-section')">+ Add Experience</button>
+        </div>
+
+        <div class="section" id="project-section">
+            <h3>Projects</h3>
+            <div class="multi-block">
+                <label>Project Title</label>
+                <input type="text" name="project_title[]">
+            </div>
+            <button type="button" onclick="addBlock('project-section')">+ Add Project</button>
+        </div>
+
+        <div class="section">
+            <h3>Skills</h3>
+            <label>List of Skills (comma separated)</label>
+            <input type="text" name="skills">
+        </div>
+
+        <div class="section">
+            <h3>Advanced</h3>
+            <label>Select Option</label>
+            <select id="advanced-select" onchange="toggleAdvancedSection()">
+                <option value="">-- Select --</option>
+                <option value="certifications">Certifications</option>
+                <option value="achievements">Achievements</option>
+                <option value="roles">Roles and Activities</option>
+            </select>
+
+            <div id="advanced-section" style="margin-top: 20px;"></div>
+        </div>
+
+        <button type="submit">Generate Resume</button>
+    </form>
+
+    <script>
+        function addBlock(sectionId) {
+            const section = document.getElementById(sectionId);
+            const block = section.querySelector('.multi-block');
+            const clone = block.cloneNode(true);
+            block.parentNode.insertBefore(clone, section.querySelector('button'));
+        }
+
+        function toggleAdvancedSection() {
+            const val = document.getElementById("advanced-select").value;
+            const section = document.getElementById("advanced-section");
+            section.innerHTML = "";
+            if (!val) return;
+            let label = val.charAt(0).toUpperCase() + val.slice(1);
+
+            const block = document.createElement("div");
+            block.className = "multi-block";
+            block.innerHTML = `
+                <label>${label} Title</label>
+                <input type="text" name="${val}_title[]">
+                <label>Year</label>
+                <input type="text" name="${val}_year[]">
+                <button type="button" onclick="addAdvanced('${val}')">+ Add ${label}</button>
+            `;
+            section.appendChild(block);
+        }
+
+        function addAdvanced(val) {
+            const section = document.getElementById("advanced-section");
+            const lastBlock = section.querySelector(".multi-block");
+            const clone = lastBlock.cloneNode(true);
+            section.appendChild(clone);
+        }
+    </script>
+</body>
+</html>
